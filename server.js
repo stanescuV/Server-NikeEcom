@@ -6,22 +6,28 @@ const app = express(); // fac app noua
 const port = 3001;
 const { start } = require("./db");
 
-start().then((sql) => {
-  sql.query("SELECT 1").then((res) => console.log(res));
-});
-/*
 app.use(cors());
 
-// API  =  application programming interface
+app.get("/data", async (req, res) => {
+  try {
+    const sql = await start();
+    const result = await sql.query("SELECT 1");
+    console.log(result);
 
-app.get("/data", (req, res) => {
-  res.json(data);
+    // Now you can send the result as a response
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred" });
+  }
 });
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
+/*
+//TEST DATA JSON (Already in SQL)
 const data = [
   //nike ********************************
   {
