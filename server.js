@@ -7,11 +7,9 @@ const port = 3001;
 const { start } = require("./db");
 
 start().then((sql) => {
-  const result = sql
-    .query("SELECT * FROM Products")
-    .then((res) => console.log(res));
+  sql.query("SELECT 1").then((res) => console.log(res));
 });
-
+/*
 app.use(cors());
 
 // API  =  application programming interface
@@ -158,3 +156,5 @@ const data = [
     pret: "27",
   },
 ];
+
+*/
