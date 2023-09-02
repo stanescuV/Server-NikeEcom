@@ -19,14 +19,13 @@ const start = async () => {
     // make sure that any items are correctly URL encoded in the connection string
     await sql.connect(sqlConfig);
     return sql;
-
-    //QUERY DE INSERT PRODUCTS
+    // //QUERY DE INSERT PRODUCTS
     // for (let i = 0; i < data.length; i++) {
     //   let y = data[i];
-    //   // let queryInsert = `INSERT Products (marca, nume, pret) SELECT '${y.marca}', '${y.name}', ${y.pret}`;
-    //   // const result = await sql.query(queryInsert);
+    //   let queryInsert = `INSERT Products (marca, name, pret, src) SELECT '${y.marca}', '${y.name}', '${y.pret}', '${y.src}'`;
+    //   const result = await sql.query(queryInsert);
     //   console.dir(result);
-    // }
+    //}
   } catch (err) {
     console.log(err);
   }
