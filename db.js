@@ -1,9 +1,11 @@
 const sql = require("mssql");
+require("dotenv").config();
+
 const sqlConfig = {
-  user: "test1",
-  password: "1234",
-  database: "TEST_DB",
-  server: "LAPTOP-GFHOUTJ9\\SQLEXPRESS",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  server: process.env.DB_SERVER,
   pool: {
     max: 10,
     min: 0,
