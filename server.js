@@ -1,17 +1,63 @@
 //backend
 //modificare
+require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
 const app = express(); // fac app noua
 const port = 3001;
 const { start } = require("./db");
 
+
 app.use(cors());
+
+
+//STRIPE 
+app.use(express.json())
+const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY)
+//Exemplu de map cu pret, nume si id 
+const storeItems = new Map([1, {priceInCents:30000, name:"nike jordan 1"}][2, {priceInCents:10000, name:"ceremony 1"}])
+/*pretul trebuie mereu sa fie ori pe Server / DB / fisier JSON niciodata pe Client*/ 
+
+app.post("/create-checkout-session", async (req,res)=>{
+  try{
+    //CREAM SESIUNEA STRIPE
+    const session = await stripe.checkout.session.create({
+      //Modificam sesiunea dupa ce ne trebuie noua 
+      payment_method_types:['card'],
+      mode:'payment',
+      line_items:req.body.items.map(item =>{
+        const storeItem = storeItems.get(item.id)
+        return{
+          price_data:{
+            currency:"usd",
+            product_data:{
+              name:storeItem.name
+            },
+            unit_amount: storeItem.priceInCents
+          },
+          quantity: item.quantity
+        }
+      }) ,
+      success_url: `${process.env.SERVER_URL}`,
+      cancel_url: `${process.env.SERVER_URL_CANCEL}`
+
+    })
+    res.json({url: session.url})
+
+  } catch (e) {
+    res.status(500).json({error: e.message})
+  }
+})
+app.listen(3002, ()=> console.log("listening on port 3002"))
+
+
+
+//end stripe 
 
 app.get("/data", async (req, res) => {
   try {
     const sqlInstance = await start();
-
+    
     const result = await sqlInstance.query("SELECT * FROM Products");
     let recordset = result.recordset;
 
