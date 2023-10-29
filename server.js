@@ -7,6 +7,7 @@ const app = express(); // fac app noua
 const port = 3001;
 const { start } = require("./db");
 
+app.use(express.json());
 
 app.use(cors());
 /*
@@ -73,12 +74,12 @@ app.get("/data", async (req, res) => {
 
 app.post("/comanda", (req, res) => {
 
-try{
+  try{
+    console.log(req.body)
 
-
-} catch (err){
-  console.log(err)
-}
+  } catch (err){
+    console.log(err)
+  }
 
 } )
 // API  =  application programming interface
