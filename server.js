@@ -72,10 +72,12 @@ app.get("/data", async (req, res) => {
 
 //FORMULAR 
 
-app.post("/comanda", (req, res) => {
+app.post("/comanda", async (req, res) => {
 
   try{
-    console.log(req.body)
+    console.log(req.body);
+    const result = await sqlInstance.query(`
+    INSERT INTO clienti (ClientEmail) values ($1)`, [form.email]);
 
   } catch (err){
     console.log(err)
