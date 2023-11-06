@@ -75,9 +75,19 @@ app.get("/data", async (req, res) => {
 app.post("/comanda", async (req, res) => {
 
   try{
-    console.log(req.body);
+    let form = req.body.form;
+    console.log(req.body.form);
+
+    const sqlInstance = await start();
     const result = await sqlInstance.query(`
-    INSERT INTO clienti (ClientEmail) values ($1)`, [form.email]);
+    Exec Insert_Clienti 
+    @ClientEmail=${form.email} ,
+    @Country=${form.country},
+    @Region=${form.region},
+    @Street=${form.street},
+    @Birth=${form.birth},
+    @Phone=${form.tel},
+    `);
 
   } catch (err){
     console.log(err)
