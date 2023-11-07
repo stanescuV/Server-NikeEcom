@@ -80,13 +80,7 @@ app.post("/comanda", async (req, res) => {
 
     const sqlInstance = await start();
     const result = await sqlInstance.query(`
-    Exec Insert_Clienti 
-    @ClientEmail=${form.email} ,
-    @Country=${form.country},
-    @Region=${form.region},
-    @Street=${form.street},
-    @Birth=${form.birth},
-    @Phone=${form.tel},
+    Exec Insert_Clienti @ClientEmail='${form.email}', @Country='${form.country}', @Region='${form.region}', @Street='${form.street}', @Birth='${form.birth}', @Phone='${form.tel}'
     `);
 
   } catch (err){
