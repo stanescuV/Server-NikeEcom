@@ -77,6 +77,7 @@ app.post("/comanda", async (req, res) => {
   try{
     let form = req.body.form;
     let itemsQuery = JSON.stringify(req.body.items);
+    let uid = JSON.stringify(req.body.uid)
     console.log(req.body);
 
     const sqlInstance = await start();
@@ -84,7 +85,7 @@ app.post("/comanda", async (req, res) => {
     Exec Insert_Clienti @ClientEmail='${form.email}', @Country='${form.country}', @Region='${form.region}',@Street='${form.street}',@Birth='${form.birth}',@Phone='${form.tel}'
     `);
     const result2 = await sqlInstance.query(`
-    Exec Insert_Orders @order='${itemsQuery}'
+    Exec Insert_Orders @order='${itemsQuery}',@uid='${uid}'
 `);
 
     const result3 = await sqlInstance.query(`
