@@ -87,10 +87,7 @@ app.post("/comanda", async (req, res) => {
     const result2 = await sqlInstance.query(`
     Exec Insert_Orders @order='${itemsQuery}',@uid='${uid}'
 `);
-
-    const result3 = await sqlInstance.query(`
-    Exec detailedOrder @json='${itemsQuery}'
-`);
+   
 
   } catch (err){
     console.log(err)
