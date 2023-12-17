@@ -50,8 +50,6 @@ const storeItems = new Map([[1, {priceInCents:30000, name:"nike jordan 1"}],[2, 
 // })
 // app.listen(3002, ()=> console.log("listening on port 3002"))
 
-
-
 //end stripe 
 
 app.get("/data", async (req, res) => {
@@ -69,6 +67,24 @@ app.get("/data", async (req, res) => {
   }
 });
 
+ 
+
+app.get("/orders/:uid", async (req, res) => {
+  try{
+    const uid = req.params.uid;
+    const sqlInstance = await start();
+    const result = await sqlInstance.query(`SELECT orderID, order_date, total from orders where order_uid ='${uid}' `  );
+    console.log(result) 
+    res.send(result.recordset)
+  } catch(err){
+    console.log(err);
+    
+  }
+})
+
+
+
+
 
 //FORMULAR 
 
@@ -77,7 +93,7 @@ app.post("/comanda", async (req, res) => {
   try{
     let form = req.body.form;
     let itemsQuery = JSON.stringify(req.body.items);
-    let uid = JSON.stringify(req.body.uid)
+    let uid = req.body.uid
     console.log(req.body);
 
     const sqlInstance = await start();
