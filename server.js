@@ -74,14 +74,24 @@ app.get("/orders/:uid", async (req, res) => {
     const uid = req.params.uid;
     const sqlInstance = await start();
     const result = await sqlInstance.query(`SELECT orderID, order_date, total from orders where order_uid ='${uid}' `  );
-    console.log(result) 
     res.send(result.recordset)
   } catch(err){
     console.log(err);
-    
   }
 })
 
+app.get("/orders/:uid/:orderID", async(req, res)=> {
+  try{
+    console.log(req.params)
+    const orderID = req.params.orderID
+    const sqlInstance = await start();
+    const result = await sqlInstance.query(`select [name], price, qt from detailed_order where orderID=${orderID}`  );
+    res.send(result.recordset)
+    
+  } catch(err){
+    console.log(err);
+  }
+})
 
 
 
@@ -115,3 +125,4 @@ app.post("/comanda", async (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
