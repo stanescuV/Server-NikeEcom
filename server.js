@@ -55,7 +55,6 @@ const storeItems = new Map([[1, {priceInCents:30000, name:"nike jordan 1"}],[2, 
 app.get("/data", async (req, res) => {
   try {
     const sqlInstance = await start();
-    
     const result = await sqlInstance.query("SELECT * FROM Products");
     let recordset = result.recordset;
 
@@ -104,7 +103,6 @@ app.post("/comanda", async (req, res) => {
     let form = req.body.form;
     let itemsQuery = JSON.stringify(req.body.items);
     let uid = req.body.uid
-    console.log(req.body);
 
     const sqlInstance = await start();
     const result1 = await sqlInstance.query(`
