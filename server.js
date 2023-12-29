@@ -81,9 +81,9 @@ app.get("/orders/:uid", async (req, res) => {
 
 app.get("/orders/:uid/:orderID", async(req, res)=> {
   try{
-    console.log(req.params)
     const orderID = req.params.orderID
     const sqlInstance = await start();
+    //de facut sproc
     const result = await sqlInstance.query(`select [name], price, qt from detailed_order where orderID=${orderID}`  );
     res.send(result.recordset)
     
@@ -92,7 +92,18 @@ app.get("/orders/:uid/:orderID", async(req, res)=> {
   }
 })
 
+//ADMIN
+app.get("/admin/:uid", async (req, res)=>{
+  try{
+    const uid = req.params.uid;
+    const sqlInstance = await start();
+    //de facut sproc
+    const result = await sqlInstance.query(`SELECT is_admin from admins where admin_uid='${uid}'  `  );
+    res.send(result.recordset)
+    console.log(result.recordset)
 
+  }catch(err){console.log(err)}
+})
 
 
 //FORMULAR 
