@@ -18,12 +18,12 @@ app.post("/create-checkout-session", async (req,res)=>{
   //send the Stripe session to the client
   try{
     console.log(req.body)
+    const uid = req.body.uid
     //CREAM SESIUNEA STRIPE
     const session = await stripe.checkout.sessions.create({
       //Modificam sesiunea dupa ce ne trebuie noua 
       payment_method_types:['card'],
       mode:'payment',
-      
       line_items:req.body.items.map(item =>{
         // const storeItem = storeItems.get(item.id)
         return{
@@ -36,17 +36,16 @@ app.post("/create-checkout-session", async (req,res)=>{
           },
           quantity: item.quantity
         }
-      }) ,
-      success_url: `${process.env.SERVER_URL}`,
+      }),
+      success_url: `${process.env.SERVER_URL}/${uid}`,
       cancel_url: `${process.env.SERVER_URL_CANCEL}`
-
     })
+
+     
     res.json({ url: session.url })
   } catch (e) {
     res.status(500).json({ error: e.message })
-  }
-
-  
+  } 
 })
 
 
@@ -108,17 +107,13 @@ app.get("/admin/:uid", async (req, res)=>{
 
 //FORMULAR 
 
-app.post("/comanda", async (req, res) => {
+app.post("/success-order/:uid", async (req, res) => {
 
   try{
-    let form = req.body.form;
     let itemsQuery = JSON.stringify(req.body.items);
     let uid = req.body.uid
 
     const sqlInstance = await start();
-    const result1 = await sqlInstance.query(`
-    Exec Insert_Clienti @ClientEmail='${form.email}', @Country='${form.country}', @Region='${form.region}',@Street='${form.street}',@Birth='${form.birth}',@Phone='${form.tel}'
-    `);
     const result2 = await sqlInstance.query(`
     Exec Insert_Orders @order='${itemsQuery}',@uid='${uid}'
 `);
