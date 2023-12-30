@@ -48,9 +48,47 @@ app.post("/create-checkout-session", async (req,res)=>{
   } 
 })
 
+//STRIPE CLI
+const endpointSecret = process.env.ENDPOINT_SECRET
+
+app.post('/webhook', express.json({type: 'application/json'}), (request, response) => {
+
+  // Get an event object
+  const event = request.body;
+  console.log(event)
+  // Use its type to find out what happened
+  if (event.type == 'payment_intent.payment_failed') {
+
+    // Get the object affected
+    const paymentIntent = event.data.object;
+
+    // Use stored information to get an error object
+    const error = paymentIntent.error;
+
+    // Use its type to choose a response
+    switch (error.type) {
+      case 'StripeCardError':
+        console.log(`A payment error occurred: ${error.message}`);
+        break;
+      case 'StripeInvalidRequestError':
+        console.log('An invalid request occurred.');
+        if (error.param) {
+          console.log(`The parameter ${error.param} is invalid or missing.`);
+        }
+        break;
+      default:
+        console.log('Another problem occurred, maybe unrelated to Stripe.');
+        break;
+    }
+  }
+  response.send();
+});
 
 
 
+
+
+//PRODUCTS
 app.get("/data", async (req, res) => {
   try {
     const sqlInstance = await start();
