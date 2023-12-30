@@ -17,7 +17,6 @@ const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY)
 app.post("/create-checkout-session", async (req,res)=>{
   //send the Stripe session to the client
   try{
-    console.log(req.body)
     const uid = req.body.uid
     //CREAM SESIUNEA STRIPE
     const session = await stripe.checkout.sessions.create({
@@ -37,7 +36,7 @@ app.post("/create-checkout-session", async (req,res)=>{
           quantity: item.quantity
         }
       }),
-      success_url: `${process.env.SERVER_URL}/${uid}`,
+      success_url: `${process.env.SERVER_URL}`,
       cancel_url: `${process.env.SERVER_URL_CANCEL}`
     })
 
@@ -51,10 +50,11 @@ app.post("/create-checkout-session", async (req,res)=>{
 //STRIPE CLI
 const endpointSecret = process.env.ENDPOINT_SECRET
 
-app.post('/webhook', express.json({type: 'application/json'}), (request, response) => {
+app.post('/webhook', express.json({type: 'application/json'}), (req, res) => {
 
   // Get an event object
-  const event = request.body;
+  const event = req.body;
+  
   console.log(event)
   // Use its type to find out what happened
   if (event.type == 'payment_intent.payment_failed') {
@@ -65,13 +65,13 @@ app.post('/webhook', express.json({type: 'application/json'}), (request, respons
     // Use stored information to get an error object
     const error = paymentIntent.error;
 
-    // Use its type to choose a response
+    // Use its type to choose a res
     switch (error.type) {
       case 'StripeCardError':
         console.log(`A payment error occurred: ${error.message}`);
         break;
       case 'StripeInvalidRequestError':
-        console.log('An invalid request occurred.');
+        console.log('An invalid req occurred.');
         if (error.param) {
           console.log(`The parameter ${error.param} is invalid or missing.`);
         }
@@ -81,7 +81,7 @@ app.post('/webhook', express.json({type: 'application/json'}), (request, respons
         break;
     }
   }
-  response.send();
+  res.send();
 });
 
 
