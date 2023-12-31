@@ -4,7 +4,6 @@ const cors = require("cors");
 const app = express(); // fac app noua
 const port = 3001;
 const { start } = require("./db");
-
 app.use(express.json());
 
 app.use(cors());
@@ -47,8 +46,30 @@ app.post("/create-checkout-session", async (req,res)=>{
   } 
 })
 
-//STRIPE CLI
+//STRIPE CLI / WEBHOOK
+
 const endpointSecret = process.env.ENDPOINT_SECRET
+
+// Use body-parser to retrieve the raw body as a buffer
+
+
+/*
+app.post('/webhook', (request, response) => {
+  const payload = request.body;
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(raw, sig, endpointSecret);
+    console.log(event)
+  } catch (err) {
+    console.log(err)
+  }
+
+  response.status(200).end();
+});
+
 
 app.post('/webhook', express.json({type: 'application/json'}), (req, res) => {
 
@@ -61,6 +82,7 @@ app.post('/webhook', express.json({type: 'application/json'}), (req, res) => {
 
     // Get the object affected
     const paymentIntent = event.data.object;
+
 
     // Use stored information to get an error object
     const error = paymentIntent.error;
@@ -83,7 +105,7 @@ app.post('/webhook', express.json({type: 'application/json'}), (req, res) => {
   }
   res.send();
 });
-
+*/
 
 
 
@@ -104,7 +126,7 @@ app.get("/data", async (req, res) => {
 });
 
  
-
+//gets orders
 app.get("/orders/:uid", async (req, res) => {
   try{
     const uid = req.params.uid;
@@ -115,7 +137,7 @@ app.get("/orders/:uid", async (req, res) => {
     console.log(err);
   }
 })
-
+//gets detailed orders
 app.get("/orders/:uid/:orderID", async(req, res)=> {
   try{
     const orderID = req.params.orderID
