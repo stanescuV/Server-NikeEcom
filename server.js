@@ -4,10 +4,35 @@ const cors = require("cors");
 const app = express(); // fac app noua
 const port = 3001;
 const { start } = require("./db");
-app.use(express.json());
-
 app.use(cors());
 
+
+
+
+//STRIPE CLI / WEBHOOK
+
+
+// Use body-parser to retrieve the raw body as a buffer
+
+const bodyParser = require("body-parser")
+app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res) => {
+  const endpointSecret = process.env.ENDPOINT_SECRET;
+  const payload = req.body;
+  const sig = req.headers['stripe-signature'];
+  
+  let event;
+  
+  try {
+    event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+  } catch (err) {
+    console.log(err.message)
+  }
+  console.log(event)
+  res.status(200).end();
+});
+
+
+app.use(express.json());
 
 //STRIPE 
 
@@ -36,76 +61,26 @@ app.post("/create-checkout-session", async (req,res)=>{
         }
       }),
       success_url: `${process.env.SERVER_URL}`,
-      cancel_url: `${process.env.SERVER_URL_CANCEL}`
+      cancel_url: `${process.env.SERVER_URL_CANCEL}`,
+      shipping_address_collection: {
+        allowed_countries: [
+          'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE',
+          'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT',
+          'RO', 'SK', 'SI', 'ES', 'SE',
+        ],
+      },
+      billing_address_collection: 'required', // or 'auto' or 'optional'
+    
+
     })
 
-     
+    
     res.json({ url: session.url })
   } catch (e) {
     res.status(500).json({ error: e.message })
   } 
 })
 
-//STRIPE CLI / WEBHOOK
-
-const endpointSecret = process.env.ENDPOINT_SECRET
-
-// Use body-parser to retrieve the raw body as a buffer
-
-
-/*
-app.post('/webhook', (request, response) => {
-  const payload = request.body;
-  const sig = request.headers['stripe-signature'];
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(raw, sig, endpointSecret);
-    console.log(event)
-  } catch (err) {
-    console.log(err)
-  }
-
-  response.status(200).end();
-});
-
-
-app.post('/webhook', express.json({type: 'application/json'}), (req, res) => {
-
-  // Get an event object
-  const event = req.body;
-  
-  console.log(event)
-  // Use its type to find out what happened
-  if (event.type == 'payment_intent.payment_failed') {
-
-    // Get the object affected
-    const paymentIntent = event.data.object;
-
-
-    // Use stored information to get an error object
-    const error = paymentIntent.error;
-
-    // Use its type to choose a res
-    switch (error.type) {
-      case 'StripeCardError':
-        console.log(`A payment error occurred: ${error.message}`);
-        break;
-      case 'StripeInvalidRequestError':
-        console.log('An invalid req occurred.');
-        if (error.param) {
-          console.log(`The parameter ${error.param} is invalid or missing.`);
-        }
-        break;
-      default:
-        console.log('Another problem occurred, maybe unrelated to Stripe.');
-        break;
-    }
-  }
-  res.send();
-});
-*/
 
 
 
@@ -185,7 +160,6 @@ app.post("/success-order/:uid", async (req, res) => {
 
 } )
 // API  =  application programming interface
-
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
