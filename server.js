@@ -27,15 +27,15 @@ app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res)
   } catch (err) {
     console.log(err.message)
   }
-  console.log(event)
+  console.log(event.data.object.customer_details)
   res.status(200).end();
 });
 
 
-app.use(express.json());
 
 //STRIPE 
 
+app.use(express.json());
 const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY)
 
 app.post("/create-checkout-session", async (req,res)=>{
