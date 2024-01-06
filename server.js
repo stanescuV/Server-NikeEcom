@@ -142,6 +142,25 @@ app.get("/admin/:uid", async (req, res)=>{
 
 //FORMULAR 
 
+
+
+app.post("/info-user", async (req, res)=>{
+  try{
+    let {uid, email}= req.body;
+    const sqlInstance = await start();
+    const result = await sqlInstance.query(`
+    INSERT INTO clienti1 (client_email, client_uid) values ('${email}', '${uid}')
+`)
+    res.send("datele s-au trimis")
+  }
+  
+  catch(err){
+    res.statusCode=500;
+    res.send("datele nu s-au trimis")
+    console.log(err)
+  }
+})
+
 app.post("/success-order/:uid", async (req, res) => {
 
   try{
