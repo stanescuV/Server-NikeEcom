@@ -127,16 +127,20 @@ app.get("/orders/:uid/:orderID", async(req, res)=> {
 })
 
 //ADMIN
-app.get("/admin/:uid", async (req, res)=>{
+app.post("/admin", async (req, res)=>{
   try{
-    const uid = req.params.uid;
+    const uid = req.body.uid;
+    console.log(uid);
     const sqlInstance = await start();
-    //de facut sproc
+    // sproc to do
     const result = await sqlInstance.query(`SELECT is_admin from admins where admin_uid='${uid}'  `  );
     res.send(result.recordset)
     console.log(result.recordset)
 
-  }catch(err){console.log(err)}
+  }catch(err){
+    console.log(err)
+    res.statusCode(500);
+  }
 })
 
 
