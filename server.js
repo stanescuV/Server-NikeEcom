@@ -86,17 +86,36 @@ app.post("/create-checkout-session", async (req,res)=>{
 
 
 //PRODUCTS
-app.get("/data", async (req, res) => {
-  try {
-    const sqlInstance = await start();
-    const result = await sqlInstance.query("SELECT * FROM Products");
-    let recordset = result.recordset;
+app.post("/data", async (req, res) => {
+  let season = req.body.season
+  if(!season){
 
-    res.send(recordset);
-    // Send the recordset as a JSON response
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "An error occurred" });
+    try {
+      const sqlInstance = await start();
+      const result = await sqlInstance.query("SELECT * FROM Products");
+      let recordset = result.recordset;
+      
+      res.send(recordset);
+      // Send the recordset as a JSON response
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred" });
+    }
+  } 
+  else {
+    try {
+      let seasonWithoutBrackets = season.replace(/"/g, '');
+      const sqlInstance = await start();
+      const result = await sqlInstance.query(`SELECT * FROM ${seasonWithoutBrackets + "Products"}`);
+      let recordset = result.recordset;
+      console.log(recordset)
+      
+      res.send(recordset);
+      // Send the recordset as a JSON response
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred" });
+    }
   }
 });
 
@@ -133,7 +152,7 @@ app.post("/admin", async (req, res)=>{
     console.log(uid);
     const sqlInstance = await start();
     // sproc to do
-    const result = await sqlInstance.query(`SELECT is_admin from admins where admin_uid='${uid}'  `  );
+    const result = await sqlInstance.query(`SELECT is_admin from admins where admin_uid='${uid}'`);
     res.send(result.recordset)
     console.log(result.recordset)
 
