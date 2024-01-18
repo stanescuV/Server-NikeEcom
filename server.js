@@ -119,6 +119,23 @@ app.post("/data", async (req, res) => {
   }
 });
 
+
+//discount 
+
+app.post("/discount", async (req, res) => {
+  try{
+    const [discount, date] = [req.body.discount, req.body.date]
+    const sqlInstance = await start();
+    const query = `Insert into discounts(discount_value, discount_date_end) values(${Number(discount)}, '${date}')`
+    console.log(query)
+    const result = await sqlInstance.query(query);
+    res.send(result.recordset)
+    console.log(req.body);
+  } catch(err){
+    console.log(err)
+  }
+})
+
  
 //gets orders
 app.get("/orders/:uid", async (req, res) => {
