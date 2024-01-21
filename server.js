@@ -86,10 +86,7 @@ app.post("/create-checkout-session", async (req,res)=>{
 
 
 //PRODUCTS
-app.post("/data", async (req, res) => {
-  let season = req.body.season
-  if(!season){
-
+app.get("/data", async (req, res) => {
     try {
       const sqlInstance = await start();
       const result = await sqlInstance.query("SELECT * FROM Products");
@@ -101,22 +98,7 @@ app.post("/data", async (req, res) => {
       console.error(error);
       res.status(500).json({ error: "An error occurred" });
     }
-  } 
-  else {
-    try {
-      let seasonWithoutBrackets = season.replace(/"/g, '');
-      const sqlInstance = await start();
-      const result = await sqlInstance.query(`SELECT * FROM ${seasonWithoutBrackets + "Products"}`);
-      let recordset = result.recordset;
-      console.log(recordset)
-      
-      res.send(recordset);
-      // Send the recordset as a JSON response
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "An error occurred" });
-    }
-  }
+  
 });
 
 
@@ -166,19 +148,29 @@ app.get("/orders/:uid/:orderID", async(req, res)=> {
 app.post("/admin", async (req, res)=>{
   try{
     const uid = req.body.uid;
-    console.log(uid);
     const sqlInstance = await start();
     // sproc to do
     const result = await sqlInstance.query(`SELECT is_admin from admins where admin_uid='${uid}'`);
     res.send(result.recordset)
-    console.log(result.recordset)
-
   }catch(err){
     console.log(err)
     res.statusCode(500);
   }
 })
 
+// Modify current price
+
+app.post("/price-db", async(req, res)=>{
+  const [itemID, itemPrice]= [req.body.itemID, req.body.itemPrice];
+  console.log(req.body)
+  const sqlInstance = await start();
+    const result = await sqlInstance.query(`UPDATE Products
+    SET current_price = ${itemPrice}
+    WHERE id = ${itemID};
+    `)
+ 
+
+})
 
 //FORMULAR 
 
