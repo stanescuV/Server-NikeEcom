@@ -15,22 +15,21 @@ const sqlConfig = {
     trustServerCertificate: true, // change to true for local dev / self-signed certs
   },
 };
+// no sql connection
+let sqlInstance = false;
 
 const start = async () => {
-  try {
-    // make sure that any items are correctly URL encoded in the connection string
-    await sql.connect(sqlConfig);
-    return sql;
-    // //QUERY DE INSERT PRODUCTS
-    // for (let i = 0; i < data.length; i++) {
-    //   let y = data[i];
-    //   let queryInsert = `INSERT Products (marca, name, pret, src) SELECT '${y.marca}', '${y.name}', '${y.pret}', '${y.src}'`;
-    //   const result = await sql.query(queryInsert);
-    //   console.dir(result);
-    //}
-  } catch (err) {
-    console.log(err);
+  //create new connection 
+  if (!sqlInstance) {
+    try {
+      await sql.connect(sqlConfig);
+      sqlInstance = sql;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
+  return sqlInstance;
 };
 
 start();

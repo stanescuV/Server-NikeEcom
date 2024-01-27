@@ -87,18 +87,19 @@ app.post("/create-checkout-session", async (req,res)=>{
 
 //PRODUCTS
 app.get("/data", async (req, res) => {
-    try {
-      const sqlInstance = await start();
-      const result = await sqlInstance.query("SELECT * FROM Products");
-      let recordset = result.recordset;
-      
-      res.send(recordset);
-      // Send the recordset as a JSON response
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "An error occurred" });
-    }
-  
+  const searchedString = req.query.q; 
+  try {
+    const sqlInstance = await start();
+    const result = await sqlInstance.query("SELECT * FROM Products");
+    let recordset = result.recordset;
+    
+    res.send(recordset);
+    // Send the recordset as a JSON response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred" });
+  }
+
 });
 
 
@@ -164,12 +165,10 @@ app.post("/price-db", async(req, res)=>{
   const [itemID, itemPrice]= [req.body.itemID, req.body.itemPrice];
   console.log(req.body)
   const sqlInstance = await start();
-    const result = await sqlInstance.query(`UPDATE Products
-    SET current_price = ${itemPrice}
-    WHERE id = ${itemID};
+  const result = await sqlInstance.query(`UPDATE Products
+  SET current_price = ${itemPrice}
+  WHERE id = ${itemID};
     `)
- 
-
 })
 
 //FORMULAR 
@@ -215,3 +214,9 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
+/*COMENTARII
+
+De centralizat sql.instance(), + try catch cu o functie noua 
+
+Prea multe conexiuni deschise
+*/
