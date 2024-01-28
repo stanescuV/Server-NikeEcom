@@ -88,19 +88,37 @@ app.post("/create-checkout-session", async (req,res)=>{
 //PRODUCTS
 app.get("/data", async (req, res) => {
   const searchedString = req.query.q; 
-  try {
-    const sqlInstance = await start();
-    const result = await sqlInstance.query("SELECT * FROM Products");
-    let recordset = result.recordset;
-    
-    res.send(recordset);
-    // Send the recordset as a JSON response
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "An error occurred" });
+  console.log(searchedString);
+  if(!searchedString){
+    try {
+      //functie cu sqlInstance.query
+      const sqlInstance = await start();
+      const result = await sqlInstance.query(`SELECT * FROM Products`);
+      let recordset = result.recordset;
+      
+      res.send(recordset);
+      // Send the recordset as a JSON response
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred" });
+    }
+  } else {
+    try {
+      const sqlInstance = await start();
+      const result = await sqlInstance.query(`SELECT TOP 5 [name],  FROM Products WHERE [name] LIKE '%${searchedString}%'` );
+      let recordset = result.recordset;
+      
+      res.send(recordset);
+      // Send the recordset as a JSON response
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred" });
+    }
   }
-
+    
 });
+
+
 
 
 //discount 
