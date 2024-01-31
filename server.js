@@ -93,8 +93,32 @@ app.get("/data", async (req, res) => {
     try {
       //functie cu sqlInstance.query
       const sqlInstance = await start();
-      const result = await sqlInstance.query(`SELECT * FROM Products`);
+      const result = await sqlInstance.query(`
+      select p.marca, p.pret,p.[name],p.src, p.id, p.current_price,
+	case 
+		when d.discount_value IS NOT NULL
+			AND getdate() between d.date_start and d.date_end then 
+			p.current_price * (1 - d.discount_value/100)
+		else
+			p.current_price
+	end as newPrice,
+
+	CASE 
+        WHEN d.discount_value IS NOT NULL 
+             AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 
+            'active'
+        ELSE 
+            null
+    END AS DiscountsActive
+		
+from Products p
+left join 
+	discount_products dp on p.id = dp.product_id
+left join
+	discounts d on dp.discount_id = d.discount_id
+    `);
       let recordset = result.recordset;
+      console.log(recordset)
       
       res.send(recordset);
       // Send the recordset as a JSON response
@@ -103,6 +127,7 @@ app.get("/data", async (req, res) => {
       res.status(500).json({ error: "An error occurred" });
     }
   } else {
+    //for admin purpose 
     try {
       const sqlInstance = await start();
       const result = await sqlInstance.query(`SELECT TOP 5 [name],  FROM Products WHERE [name] LIKE '%${searchedString}%'` );
