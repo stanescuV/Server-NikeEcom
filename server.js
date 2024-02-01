@@ -88,38 +88,30 @@ app.post("/create-checkout-session", async (req,res)=>{
 //PRODUCTS
 app.get("/data", async (req, res) => {
   const searchedString = req.query.q; 
-  console.log(searchedString);
   if(!searchedString){
     try {
       //functie cu sqlInstance.query
       const sqlInstance = await start();
+      //query to get info with select
       const result = await sqlInstance.query(`
-      select p.marca, p.pret,p.[name],p.src, p.id, p.current_price,
-	case 
-		when d.discount_value IS NOT NULL
-			AND getdate() between d.date_start and d.date_end then 
-			p.current_price * (1 - d.discount_value/100)
-		else
-			p.current_price
-	end as newPrice,
-
-	CASE 
-        WHEN d.discount_value IS NOT NULL 
-             AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 
-            'active'
-        ELSE 
-            null
-    END AS DiscountsActive
-		
-from Products p
-left join 
-	discount_products dp on p.id = dp.product_id
-left join
-	discounts d on dp.discount_id = d.discount_id
+      SELECT
+      p.marca,
+      p.current_price,
+      p.pret,
+      p.[name],
+      p.src,
+      p.id,
+      CASE
+          WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 'active'
+          ELSE NULL
+      END AS DiscountsActive
+    FROM Products p
+    LEFT JOIN discount_products dp ON p.id = dp.product_id
+    LEFT JOIN discounts d ON dp.discount_id = d.discount_id
+  
     `);
-      let recordset = result.recordset;
-      console.log(recordset)
       
+      let recordset = result.recordset;
       res.send(recordset);
       // Send the recordset as a JSON response
     } catch (error) {
@@ -130,7 +122,7 @@ left join
     //for admin purpose 
     try {
       const sqlInstance = await start();
-      const result = await sqlInstance.query(`SELECT TOP 5 [name],  FROM Products WHERE [name] LIKE '%${searchedString}%'` );
+      const result = await sqlInstance.query(`SELECT TOP 5 [name], pret, current_price, src, marca FROM Products WHERE [name] LIKE '%${searchedString}%'` );
       let recordset = result.recordset;
       
       res.send(recordset);
@@ -150,10 +142,10 @@ left join
 
 app.post("/discount", async (req, res) => {
   try{
-    const [discount, date] = [req.body.discount, req.body.date]
+    const [discount, dateStart,dateEnd, name, ] = [req.body.discount, req.body.date]
     const sqlInstance = await start();
-    const query = `Insert into discounts(discount_value, discount_date_end) values(${Number(discount)}, '${date}')`
-    console.log(query)
+    const query = `Insert into discounts(discount_value, discount_name, discount_date_start discount_date_end) values(${Number(discount)}, '${date}')`
+    
     const result = await sqlInstance.query(query);
     res.send(result.recordset)
     console.log(req.body);
@@ -162,6 +154,18 @@ app.post("/discount", async (req, res) => {
   }
 })
 
+//list of products for admin
+app.get("/products-discounts", async(req,res)=>{
+  try{
+    const sqlInstance = await start();
+    const result = await sqlInstance.query(`select [name], marca, id from products`);
+    console.log(result.recordset);
+    res.send(result.recordset);
+  } catch(err){
+    console.log(err)
+    res.status(500).json({ error: "An error occurred /products-discount" });
+  }
+})
  
 //gets orders
 app.get("/orders/:uid", async (req, res) => {
