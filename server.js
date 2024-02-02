@@ -96,16 +96,17 @@ app.get("/data", async (req, res) => {
       const result = await sqlInstance.query(`
       BEGIN TRANSACTION;
 
-UPDATE Products
-SET current_price = CASE
-    WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN Products.pret * (1 - d.discount_value/100)
-    ELSE Products.current_price
-END
-FROM Products
-INNER JOIN discount_products dp ON Products.id = dp.product_id
-INNER JOIN discounts d ON dp.discount_id = d.discount_id
-WHERE GETDATE() BETWEEN d.date_start AND d.date_end
-AND d.discount_value IS NOT NULL;
+      UPDATE Products
+      SET current_price = CASE
+          -- Apply discount if there is an active discount
+          WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN Products.pret * (1 - d.discount_value/100)
+          -- No discount or discount not in effect, revert to original price
+          ELSE Products.pret
+      END
+      FROM Products
+      LEFT JOIN discount_products dp ON Products.id = dp.product_id
+      LEFT JOIN discounts d ON dp.discount_id = d.discount_id AND GETDATE() BETWEEN d.date_start AND d.date_end
+      
 
 COMMIT;
 
@@ -159,19 +160,29 @@ app.post("/discount", async (req, res) => {
   
 
   try{
-    const { products, discount, dateStart, dateEnd, discountName } = req.body;
+    const products = req.body.products;
+    const { discount, dateStart, dateEnd, discountName } = req.body;
     console.log(req.body)
     const sqlInstance = await start();
+    //first insert in the discounts
     const discountQuery = `Insert into discounts(discount_value, discount_name, date_start, date_end) 
     OUTPUT INSERTED.discount_id
     values(${Number(discount)}, '${discountName}', '${dateStart}', '${dateEnd}');`
-    
     const result = await sqlInstance.query(discountQuery);
-    
-    
+
+  
+    // get the last discount_id
+    const discountProductsQuery = `select max (discount_id) as id from discounts `
+    const result2= await sqlInstance.query(discountProductsQuery);
+    let discountID = result2.recordset[0].id;
+
+    //insert all the products with the last discount id
+    for(let product of products){
+      let insertDP = `Insert into discount_products (discount_id, product_id) values (${discountID}, ${product.id})`
+      let result3 = await sqlInstance.query(insertDP);
+    }
     
     res.send(result.recordset)
-    console.log(result.recordset)
    
   } catch(err){
     console.log(err)
@@ -237,8 +248,9 @@ app.post("/price-db", async(req, res)=>{
   console.log(req.body)
   const sqlInstance = await start();
   const result = await sqlInstance.query(`UPDATE Products
-  SET current_price = ${itemPrice}
-  WHERE id = ${itemID};
+  SET pret = ${itemPrice}
+  WHERE id = ${itemID} 
+    
     `)
 })
 
