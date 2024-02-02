@@ -94,24 +94,39 @@ app.get("/data", async (req, res) => {
       const sqlInstance = await start();
       //query to get info with select
       const result = await sqlInstance.query(`
-      SELECT
-      p.marca,
-      p.current_price,
-      p.pret,
-      p.[name],
-      p.src,
-      p.id,
-      CASE
-          WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 'active'
-          ELSE NULL
-      END AS DiscountsActive
-    FROM Products p
-    LEFT JOIN discount_products dp ON p.id = dp.product_id
-    LEFT JOIN discounts d ON dp.discount_id = d.discount_id
-  
+      BEGIN TRANSACTION;
+
+UPDATE Products
+SET current_price = CASE
+    WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN Products.pret * (1 - d.discount_value/100)
+    ELSE Products.current_price
+END
+FROM Products
+INNER JOIN discount_products dp ON Products.id = dp.product_id
+INNER JOIN discounts d ON dp.discount_id = d.discount_id
+WHERE GETDATE() BETWEEN d.date_start AND d.date_end
+AND d.discount_value IS NOT NULL;
+
+COMMIT;
+
+SELECT
+    Products.marca,
+    Products.pret,
+    Products.current_price AS current_price,
+    Products.[name],
+    Products.src,
+    Products.id,
+    CASE
+        WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 'active'
+        ELSE NULL
+    END AS DiscountsActive
+FROM Products
+LEFT JOIN discount_products dp ON Products.id = dp.product_id
+LEFT JOIN discounts d ON dp.discount_id = d.discount_id;
+
     `);
-      
-      let recordset = result.recordset;
+    let recordset = result.recordset;
+      console.log(recordset)
       res.send(recordset);
       // Send the recordset as a JSON response
     } catch (error) {
@@ -122,7 +137,7 @@ app.get("/data", async (req, res) => {
     //for admin purpose 
     try {
       const sqlInstance = await start();
-      const result = await sqlInstance.query(`SELECT TOP 5 [name], pret, current_price, src, marca FROM Products WHERE [name] LIKE '%${searchedString}%'` );
+      const result = await sqlInstance.query(`SELECT TOP 5 [name], pret, id, current_price, src, marca FROM Products WHERE [name] LIKE '%${searchedString}%'` );
       let recordset = result.recordset;
       
       res.send(recordset);
@@ -141,14 +156,23 @@ app.get("/data", async (req, res) => {
 //discount 
 
 app.post("/discount", async (req, res) => {
+  
+
   try{
-    const [discount, dateStart,dateEnd, name, ] = [req.body.discount, req.body.date]
+    const { products, discount, dateStart, dateEnd, discountName } = req.body;
+    console.log(req.body)
     const sqlInstance = await start();
-    const query = `Insert into discounts(discount_value, discount_name, discount_date_start discount_date_end) values(${Number(discount)}, '${date}')`
+    const discountQuery = `Insert into discounts(discount_value, discount_name, date_start, date_end) 
+    OUTPUT INSERTED.discount_id
+    values(${Number(discount)}, '${discountName}', '${dateStart}', '${dateEnd}');`
     
-    const result = await sqlInstance.query(query);
+    const result = await sqlInstance.query(discountQuery);
+    
+    
+    
     res.send(result.recordset)
-    console.log(req.body);
+    console.log(result.recordset)
+   
   } catch(err){
     console.log(err)
   }
