@@ -27,7 +27,7 @@ app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res)
   } catch (err) {
     console.log(err.message)
   }
-  console.log(event.data.object.customer_details)
+  console.log(event.data)
   res.status(200).end();
 });
 
@@ -94,40 +94,9 @@ app.get("/data", async (req, res) => {
       const sqlInstance = await start();
       //query to get info with select
       const result = await sqlInstance.query(`
-      BEGIN TRANSACTION;
-
-      UPDATE Products
-      SET current_price = CASE
-          -- Apply discount if there is an active discount
-          WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN Products.pret * (1 - d.discount_value/100)
-          -- No discount or discount not in effect, revert to original price
-          ELSE Products.pret
-      END
-      FROM Products
-      LEFT JOIN discount_products dp ON Products.id = dp.product_id
-      LEFT JOIN discounts d ON dp.discount_id = d.discount_id AND GETDATE() BETWEEN d.date_start AND d.date_end
-      
-
-COMMIT;
-
-SELECT
-    Products.marca,
-    Products.pret,
-    Products.current_price AS current_price,
-    Products.[name],
-    Products.src,
-    Products.id,
-    CASE
-        WHEN d.discount_value IS NOT NULL AND GETDATE() BETWEEN d.date_start AND d.date_end THEN 'active'
-        ELSE NULL
-    END AS DiscountsActive
-FROM Products
-LEFT JOIN discount_products dp ON Products.id = dp.product_id
-LEFT JOIN discounts d ON dp.discount_id = d.discount_id;
-
+      EXEC ProductsWithDiscounts
     `);
     let recordset = result.recordset;
-      console.log(recordset)
       res.send(recordset);
       // Send the recordset as a JSON response
     } catch (error) {
