@@ -1,20 +1,45 @@
+
+
+// process.argv[2] il utilizez intr o functie ca sa diferentiez din cli dev si prod
+console.log(process.argv)
+
 require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
 const app = express(); // fac app noua
 const port = 3001;
+const {connectionDB}= require("./pg");
 const { start } = require("./db");
 app.use(cors());
 
 
 
 
-//STRIPE CLI / WEBHOOK
+async function connectionAndEndpoints(){
+  
+
+async function query (string=""){
+  result = (await res.query(string)).rows;
+  
+  return result;
+  }
 
 
-// Use body-parser to retrieve the raw body as a buffer
+  res = await connectionDB();
+  console.log((await query("select * from products", res)))
+  app.get("/data", async (req, res) => {
+    try {
+      const result = await res.query(`Select * from products`);
+      res.send(result);
+      // Send the recordset as a JSON response
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred while sending the product data" });
+    }
+   })
 
-const bodyParser = require("body-parser")
+  /*
+  const bodyParser = require("body-parser")
 app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res) => {
   const endpointSecret = process.env.ENDPOINT_SECRET;
   const payload = req.body;
@@ -266,9 +291,8 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-/*COMENTARII
+  */ 
+}
 
-De centralizat sql.instance(), + try catch cu o functie noua 
+connectionAndEndpoints();
 
-Prea multe conexiuni deschise
-*/
