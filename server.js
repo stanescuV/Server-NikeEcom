@@ -9,7 +9,7 @@ const cors = require("cors");
 const app = express(); // fac app noua
 const port = 3001;
 const {connectionDB}= require("./pg");
-const { start } = require("./db");
+//const { start } = require("./db");
 app.use(cors());
 
 

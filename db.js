@@ -1,3 +1,4 @@
+/*
 const sql = require("mssql");
 require("dotenv").config();
 const medii = ["prod", "dev"];
@@ -66,3 +67,4 @@ start();
 
 //export in NODE JS
 module.exports = { start };
+*/
