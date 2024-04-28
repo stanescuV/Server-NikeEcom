@@ -19,6 +19,7 @@ async function connectionAndEndpoints(){
   
 
 async function query (string=""){
+  let result;
   result = (await res.query(string)).rows;
   
   return result;
