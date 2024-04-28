@@ -287,12 +287,12 @@ app.post("/success-order/:uid", async (req, res) => {
 
 } )
 // API  =  application programming interface
+
+*/ 
+}
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-  */ 
-}
-
 connectionAndEndpoints();
 
