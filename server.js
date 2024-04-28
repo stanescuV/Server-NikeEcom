@@ -30,7 +30,7 @@ async function query (string=""){
   console.log((await query("select * from products", res)))
   app.get("/data", async (req, res) => {
     try {
-      const result = await res.query(`Select * from products`);
+      const result = await query(`Select * from products`);
       res.send(result);
       // Send the recordset as a JSON response
     } catch (error) {
