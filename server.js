@@ -39,8 +39,7 @@ async function query (string=""){
     }
    })
 
-  /*
-  const bodyParser = require("body-parser")
+   const bodyParser = require("body-parser")
 app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res) => {
   const endpointSecret = process.env.ENDPOINT_SECRET;
   const payload = req.body;
@@ -107,6 +106,9 @@ app.post("/create-checkout-session", async (req,res)=>{
   } 
 })
 
+
+  /*
+  
 
 
 
@@ -249,26 +251,6 @@ app.post("/price-db", async(req, res)=>{
     `)
 })
 
-//FORMULAR 
-
-
-
-app.post("/info-user", async (req, res)=>{
-  try{
-    let {uid, email}= req.body;
-    const sqlInstance = await start();
-    const result = await sqlInstance.query(`
-    INSERT INTO clienti1 (client_email, client_uid) values ('${email}', '${uid}')
-`)
-    res.send("datele s-au trimis")
-  }
-  
-  catch(err){
-    res.statusCode=500;
-    res.send("datele nu s-au trimis")
-    console.log(err)
-  }
-})
 
 app.post("/success-order/:uid", async (req, res) => {
 
