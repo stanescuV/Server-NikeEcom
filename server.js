@@ -19,8 +19,8 @@ const app = express();
 app.use(cors()); // Enable CORS
 
 // SSL/TLS certificates paths loaded from environment variables or directly
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/fullchain.pem', 'utf8');
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/qweasdzxc.fr/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/qweasdzxc.fr/fullchain.pem', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
 async function connectionAndEndpoints(){
