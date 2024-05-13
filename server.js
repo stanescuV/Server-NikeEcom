@@ -12,6 +12,17 @@ const {connectionDB}= require("./pg");
 //const { start } = require("./db");
 app.use(cors());
 
+//http to https redirects
+app.enable('trust proxy');
+
+app.use((req,res,next)=>{
+  if(rec.secure){
+      next();
+  }else{
+      res.redirect('https://www.qweasdzxc.fr'+req.url);
+  }
+});
+
 
 
 
