@@ -16,7 +16,7 @@ app.use(cors());
 app.enable('trust proxy');
 
 app.use((req,res,next)=>{
-  if(rec.secure){
+  if(req.secure){
       next();
   }else{
       res.redirect('https://www.qweasdzxc.fr'+req.url);
