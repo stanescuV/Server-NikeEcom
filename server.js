@@ -290,7 +290,7 @@ async function connectionAndEndpoints(){
 
 // HTTPS server creation using SSL certificates
 const httpsServer = https.createServer(credentials, app);
-httpsServer.listen(3001, () => {
+httpsServer.listen(3001,'0.0.0.0', () => {
     console.log('HTTPS Server running on port 3001');
 });
 
