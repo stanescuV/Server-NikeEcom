@@ -1,15 +1,9 @@
-
-
-// process.argv[2] il utilizez intr o functie ca sa diferentiez din cli dev si prod
-// console.log(process.argv)
-// dotenv configuration for loading environment variables
 require('dotenv').config();
 
 // Express and other required modules
 const express = require("express");
 const cors = require("cors");
-const https = require("https");
-const fs = require("fs");
+const http = require("http");
 
 // Database connection module (make sure this is correctly implemented)
 const { connectionDB } = require("./pg");
@@ -18,103 +12,83 @@ const { connectionDB } = require("./pg");
 const app = express();
 app.use(cors()); // Enable CORS
 
-// SSL/TLS certificates paths loaded from environment variables or directly
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/qweasdzxc.fr/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/qweasdzxc.fr/fullchain.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
-
 async function connectionAndEndpoints(){
-  
+    let db;
 
-  async function query (string=""){
-    let result;
-    result = (await res.query(string)).rows;
-    
-    return result;
+    async function query (string=""){
+        let result;
+        try {
+            result = (await db.query(string)).rows;
+        } catch (err) {
+            console.error('Database query error:', err);
+            throw err;
+        }
+        return result;
     }
-  
-  
-    res = await connectionDB();
-    console.log((await query("select * from products", res)))
-    app.get("/data", async (req, res) => {
-      try {
-        const result = await query(`Select * from products`);
-        res.send(result);
-        // Send the recordset as a JSON response
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "An error occurred while sending the product data" });
-      }
-     })
-  
-     const bodyParser = require("body-parser")
-  app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res) => {
-    const endpointSecret = process.env.ENDPOINT_SECRET;
-    const payload = req.body;
-    const sig = req.headers['stripe-signature'];
-    
-    let event;
-    
+
     try {
-      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+        db = await connectionDB();
+        console.log('Database connected');
     } catch (err) {
-      console.log(err.message)
+        console.error('Database connection error:', err);
+        return;
     }
-    console.log(event.data)
-    res.status(200).end();
-  });
-  
-  
-  
-  //STRIPE 
-  
-  app.use(express.json());
-  const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY)
-  
-  app.post("/create-checkout-session", async (req,res)=>{
-    //send the Stripe session to the client
-    try{
-      const uid = req.body.uid
-      //CREAM SESIUNEA STRIPE
-      const session = await stripe.checkout.sessions.create({
-        //Modificam sesiunea dupa ce ne trebuie noua 
-        payment_method_types:['card'],
-        mode:'payment',
-        line_items:req.body.items.map(item =>{
-          // const storeItem = storeItems.get(item.id)
-          return{
-            price_data:{
-              currency:"usd",
-              product_data:{
-                name: item.name
-              },
-              unit_amount: item.price * 100
-            },
-            quantity: item.quantity
-          }
-        }),
-        success_url: `${process.env.SERVER_URL}`,
-        cancel_url: `${process.env.SERVER_URL_CANCEL}`,
-        shipping_address_collection: {
-          allowed_countries: [
-            'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE',
-            'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT',
-            'RO', 'SK', 'SI', 'ES', 'SE',
-          ],
-        },
-        billing_address_collection: 'required', // or 'auto' or 'optional'
-      
-  
-      })
-  
-      
-      res.json({ url: session.url })
-    } catch (e) {
-      res.status(500).json({ error: e.message })
-    } 
-  })
-  
-  
+
+    app.get("/data", async (req, res) => {
+        try {
+            const result = await query('SELECT * FROM products');
+            res.send(result);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "An error occurred while sending the product data" });
+        }
+    });
+
+    const bodyParser = require("body-parser");
+    app.post('/webhook', bodyParser.raw({type:"application/json"}), async (req, res) => {
+        const endpointSecret = process.env.ENDPOINT_SECRET;
+        const payload = req.body;
+        const sig = req.headers['stripe-signature'];
+
+        let event;
+        try {
+            event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+        } catch (err) {
+            console.log(err.message);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
+        console.log(event.data);
+        res.status(200).end();
+    });
+
+    // Stripe integration
+    app.use(express.json());
+    const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY);
+
+    app.post("/create-checkout-session", async (req, res) => {
+        try {
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                mode: 'payment',
+                line_items: req.body.items.map(item => ({
+                    price_data: {
+                        currency: "usd",
+                        product_data: { name: item.name },
+                        unit_amount: item.price * 100
+                    },
+                    quantity: item.quantity
+                })),
+                success_url: `${process.env.SERVER_URL}`,
+                cancel_url: `${process.env.SERVER_URL_CANCEL}`,
+                shipping_address_collection: { allowed_countries: ['US', 'CA'] },
+                billing_address_collection: 'required'
+            });
+
+            res.json({ url: session.url });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
     /*
     
   
@@ -285,13 +259,12 @@ async function connectionAndEndpoints(){
   // app.listen(port, () => {
   //   console.log(`Example app listening on port ${port}`);
   // });
+
+
+
   connectionAndEndpoints();
 
-
-// HTTPS server creation using SSL certificates
-const httpsServer = https.createServer(credentials, app);
-httpsServer.listen(3001,'0.0.0.0', () => {
-    console.log('HTTPS Server running on port 3001');
-});
-
-
+  const httpServer = http.createServer(app);
+  httpServer.listen(3001, '0.0.0.0', () => {
+      console.log('HTTP Server running on port 3001');
+  });
